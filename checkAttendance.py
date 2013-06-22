@@ -58,15 +58,6 @@ def testXlwt(filename):
     book.save(filename)
     #book.save(TemporaryFile())
 
-def ReadNames(file):
-    f=open(file)
-    lines=f.readlines()
-    names=[]
-    for line in lines:
-        names.append(line.rstrip())
-    return names
-
-
 def pickMember(fileRead,fileWrite,names=None):
     book=xlrd.open_workbook(fileRead)
     shr=book.sheet_by_index(0)
@@ -158,10 +149,6 @@ def pickMember(fileRead,fileWrite,names=None):
 if __name__=='__main__':
     #testXlrd('June.xls')
     #testOpenpyxl('June.xlsx')
-    #testXlwt('xlwt.xls')
-    
-    #our employees' names
-    #names=ReadNames(file) 
-       
+    #testXlwt('xlwt.xls')       
     pickMember('June.xls','treated1.xls')
 

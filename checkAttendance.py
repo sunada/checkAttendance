@@ -7,12 +7,9 @@ import time
 from datetime import date,datetime
 
 
-#the colx of department
-depColx=0
-#our departments
-deps=[u'安全软件测试与支持部',u'安管标准化产品及平台部',
-u'安管行业化产品部',u'安管互联网产品部',u'安全软件技术支持部',
-u'大数据分析与安全研究部']
+
+#the colx of name
+nameColx=1
 #import time point: 8:00,10:00,10:30,16:00,16:30,19:00,20:00
 tpnts=[0.333333,0.416667,0.4375,0.666666,0.6875,0.791667,0.833333]
 
@@ -58,16 +55,34 @@ def testXlwt(filename):
     book.save(filename)
     #book.save(TemporaryFile())
 
-def ReadNames(file):
+def ReadNamedeps(file):
     f=open(file)
     lines=f.readlines()
-    names=[]
+    nameDeps={}
+    dep=None
+    name=None
     for line in lines:
-        names.append(line.rstrip())
+        line=line.rstrip()
+        if not line:
+            continue
+        if line[:4]=='dep:':
+            dep=line[4:].decode('gb2312')
+        else:
+            name=line.decode('gb2312')
+            #print dep, name
+            nameDeps[name]=dep
+    return nameDeps
+
+def getNames(nameDeps):
+    names=[]
+    for item in nameDeps:
+        #print type(item)
+        #item=item.decode('gb2312')
+        #print type(item)
+        names.append(item)
     return names
 
-
-def pickMember(fileRead,fileWrite,names=None):
+def pickMember(fileRead,fileWrite,nameDeps):
     book=xlrd.open_workbook(fileRead)
     shr=book.sheet_by_index(0)
     newBook=xlwt.Workbook()
@@ -75,13 +90,16 @@ def pickMember(fileRead,fileWrite,names=None):
     #print 'rows: ', shr.nrows
     #print 'columns: ', shr.ncols
     #print 'A15: ', shr.cell_value(rowx=14,colx=0).encode('gbk')
-    
+    names=getNames(nameDeps)
+        
     cnt=0
     for rx in range(shr.nrows):
         #print 'A'+str(rx)+': ', sh.cell_value(rowx=rx,colx=depColx).encode('gbk')
-        dep=shr.cell_value(rowx=rx,colx=depColx)
-        if dep in deps:
-            for cx in range(shr.ncols-3):
+        name=shr.cell_value(rx,nameColx)
+        
+        if name in names:
+            shw.write(cnt,0,nameDeps[name])
+            for cx in range(1,shr.ncols-3):
                 shw.write(cnt,cx,shr.cell_value(rx,cx))
             first=shr.cell_value(rx,cx-1)
             last=shr.cell_value(rx,cx)
@@ -161,7 +179,10 @@ if __name__=='__main__':
     #testXlwt('xlwt.xls')
     
     #our employees' names
-    #names=ReadNames(file) 
-       
-    pickMember('June.xls','treated1.xls')
+    nameDeps=ReadNamedeps(u'部门人员信息.txt')  
+    #for item in nameDeps:
+    #    print item
+    names=getNames(nameDeps)
+
+    pickMember('June.xls','treated1.xls',nameDeps)
 

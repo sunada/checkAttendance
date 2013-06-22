@@ -6,13 +6,10 @@ import xlwt
 import time
 from datetime import date,datetime
 
-
-
 #the colx of name
 nameColx=1
 #import time point: 8:00,10:00,10:30,16:00,16:30,19:00,20:00
 tpnts=[0.333333,0.416667,0.4375,0.666666,0.6875,0.791667,0.833333]
-
 
 #xlrd is much more efficent
 def testXlrd(filename):

@@ -2,7 +2,7 @@
 
 import xlrd
 import xlwt
-from openpyxl import load_workbook
+#from openpyxl import load_workbook
 import time
 from datetime import date,datetime
 
@@ -14,12 +14,14 @@ deps=[u'安全软件测试与支持部',u'安管标准化产品及平台部',
 u'安管行业化产品部',u'安管互联网产品部',u'安全软件技术支持部',
 u'大数据分析与安全研究部']
 
+'''
 #openpyxl will spend too much time
 def testOpenpyxl(filename):
     start=time.time()
     wb2=load_workbook(filename)
     print wb2.get_sheet_names() 
     print 'openpyxl: ',time.time()-start
+'''
 
 #xlrd is much more efficent
 def testXlrd(filename):
@@ -76,20 +78,34 @@ def pickMember(fileRead,fileWrite):
         #print 'A'+str(rx)+': ', sh.cell_value(rowx=rx,colx=depColx).encode('gbk')
         dep=shr.cell_value(rowx=rx,colx=depColx)
         if dep in deps:
-            #print dep.encode('gbk')
-            for cx in range(shr.ncols):
-                #print shr.cell_value(rowx=rx,colx=depColx).encode('gbk')
-                if cx==2:
-                    tmp=shr.cell_value(rx,cx)
-                    try:
-                        #print tmp
-                        dateValue=xlrd.xldate_as_tuple(tmp,book.datemode)
-                        print date(*dateValue[:3])
-                        shw.write(cnt,cx,date(*dateValue[:3]))
-                    except Exception,e:
-                        print shw.write(cnt,cx,shr.cell_value(rx,cx))
-                else:
-                    shw.write(cnt,cx,shr.cell_value(rx,cx))
+            for cx in range(shr.ncols-2):
+                shw.write(cnt,cx,shr.cell_value(rx,cx))
+            hours=shr.cell_value(rx,cx)*24
+            first=shr.cell_value(rx,cx-2)
+            last=shr.cell_value(rx,cx-1)
+            print type(hours)
+            if type(first) is unicode:
+                shw.write(cnt,cx+2,u'迟到')
+                shw.write(cnt,cx+3,u'早退')
+                shw.write(cnt,cx+4,u'工时不足')
+                shw.write(cnt,cx+5,u'旷工')
+            elif type(first) is float:
+                shw.write(cnt,cx+1,hours)
+                print first-0.416667
+                print first-0.4375
+                print last-0.6875
+                print hours
+                if first-0.416667>0:
+                    shw.write(cnt,cx+2,'Yes')
+                if first-0.4375<0:
+                    shw.write(cnt,cx+5,'Yes')
+                if last-0.6875<0:
+                    shw.write(cnt,cx+3,u'Yes')
+                if hours<8.5:
+                    shw.write(cnt,cx+4,u'Yes')
+            else:
+                pass
+            
             cnt+=1
     newBook.save(fileWrite)
     

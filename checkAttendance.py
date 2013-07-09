@@ -4,11 +4,15 @@ import xlrd
 import xlwt
 from openpyxl import load_workbook
 import time
+from datetime import date,datetime
+
 
 #the colx of department
 depColx=0
 #our departments
-deps=[u'安全软件测试与支持部']
+deps=[u'安全软件测试与支持部',u'安管标准化产品及平台部',
+u'安管行业化产品部',u'安管互联网产品部',u'安全软件技术支持部',
+u'大数据分析与安全研究部']
 
 #openpyxl will spend too much time
 def testOpenpyxl(filename):
@@ -58,22 +62,42 @@ def testXlwt(filename):
     book.save(filename)
     #book.save(TemporaryFile())
 
-def pickMember(filename):
-    book=xlrd.open_workbook(filename)
-    sh=book.sheet_by_index(0)
-    print 'rows: ', sh.nrows
-    print 'columns: ', sh.ncols
-    #print 'A15: ', sh.cell_value(rowx=14,colx=0).encode('gbk')
+def pickMember(fileRead,fileWrite):
+    book=xlrd.open_workbook(fileRead)
+    shr=book.sheet_by_index(0)
+    newBook=xlwt.Workbook()
+    shw=newBook.add_sheet('sheet1')
+    #print 'rows: ', shr.nrows
+    #print 'columns: ', shr.ncols
+    #print 'A15: ', shr.cell_value(rowx=14,colx=0).encode('gbk')
     
-    for rx in range(sh.nrows):
+    cnt=0
+    for rx in range(shr.nrows):
         #print 'A'+str(rx)+': ', sh.cell_value(rowx=rx,colx=depColx).encode('gbk')
-        dep=sh.cell_value(rowx=rx,colx=depColx)
+        dep=shr.cell_value(rowx=rx,colx=depColx)
         if dep in deps:
-            print dep.encode('gbk')
+            #print dep.encode('gbk')
+            for cx in range(shr.ncols):
+                #print shr.cell_value(rowx=rx,colx=depColx).encode('gbk')
+                if cx==2:
+                    tmp=shr.cell_value(rx,cx)
+                    try:
+                        #print tmp
+                        dateValue=xlrd.xldate_as_tuple(tmp,book.datemode)
+                        print date(*dateValue[:3])
+                        shw.write(cnt,cx,date(*dateValue[:3]))
+                    except Exception,e:
+                        print shw.write(cnt,cx,shr.cell_value(rx,cx))
+                else:
+                    shw.write(cnt,cx,shr.cell_value(rx,cx))
+            cnt+=1
+    newBook.save(fileWrite)
     
+                
+                
 if __name__=='__main__':
     #testXlrd('June.xls')
     #testOpenpyxl('June.xlsx')
-    testXlwt('xlwt.xls')
-    #pickMember('June.xls')
+    #testXlwt('xlwt.xls')
+    pickMember('June.xls','treated.xls')
 

@@ -10,8 +10,8 @@ from datetime import date,datetime
 depColx=0
 #the colx of name
 nameColx=1
-#the colx of record day
-reColx=2
+#the colx of record workday
+workdayColx=2
 #the colx to mark whether there are unusual records
 markColx=9
 #import time point: 8:00,10:00,10:30,16:00,16:30,19:00,20:00
@@ -111,6 +111,38 @@ def GetWorkday(month,weekday,weekend):
         workday.append(i)
         
     return sorted(workday)      
+
+def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt): 
+    #print 'rowx:',rx,'name:',name.encode('gb2312'),'baseName:',baseName.encode('gb2312')
+    #print 'name:',name.encode('gb2312'),'baseName:',baseName.encode('gb2312')
+    if name==baseName:
+        if type(day) is float:
+            #print name.encode('gb2312'),day,workdayCnt,workday[workdayCnt]
+            if day>workday[workdayCnt]:
+                #shw.write(cnt,depColx,nameDeps[name])
+                #shw.write(cnt,nameColx,name)
+                shw.write(cnt,workdayColx,workday[workdayCnt])
+                shw.write(cnt,workdayColx+1,u'无打卡记录')
+                shw.write(cnt,workdayColx+2,u'无打卡记录')
+                shw.write(cnt,workdayColx+3,u'无打卡记录')
+                shw.write(cnt,workdayColx+4,u'无打卡记录')
+                shw.write(cnt,workdayColx+5,u'无打卡记录')
+                shw.write(cnt,workdayColx+6,u'无打卡记录')
+                shw.write(cnt,workdayColx+7,u'是')
+                cnt+=1
+                workdayCnt+=1
+                shw.write(cnt,depColx,nameDeps[name])
+                shw.write(cnt,nameColx,name)
+                workdayCnt,cnt,baseName=addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt)
+            elif day<workday[workdayCnt]:
+                pass
+            else:
+                workdayCnt+=1
+    else:
+        baseName=name
+        workdayCnt=0
+    return workdayCnt,cnt,baseName
+    
     
 def PickMember(fileRead,fileWrite,nameDeps,workday):
     book=xlrd.open_workbook(fileRead)
@@ -121,17 +153,35 @@ def PickMember(fileRead,fileWrite,nameDeps,workday):
     #print 'columns: ', shr.ncols
     #print 'A15: ', shr.cell_value(rowx=14,colx=0).encode('gbk')
     names=GetNames(nameDeps)
-        
+    
+    #baseName=shr.cell_value(0,nameColx)
+    baseName=False
+    workdayCnt=0
+    
     cnt=0
     for rx in range(shr.nrows):
         #print 'A'+str(rx)+': ', sh.cell_value(rowx=rx,colx=depColx).encode('gbk')
         name=shr.cell_value(rx,nameColx)
 
         if name in names.keys():
+            if not baseName:
+                baseName=shr.cell_value(rx,nameColx)
+            
             names[name]=True
             shw.write(cnt,depColx,nameDeps[name])
+            shw.write(cnt,nameColx,name)
             
-            for cx in range(1,shr.ncols-3):
+            day=shr.cell_value(rx,workdayColx)
+            
+            #To check whether it needs to add a row
+            if type(day) is not unicode and workdayCnt!=22:
+                print 'name:',name.encode('gb2312'),' baseName:',baseName.encode('gb2312'),
+                print 'day:',day,'workdayCnt:',workdayCnt,'workday:',workday[workdayCnt]
+            workdayCnt,cnt,baseName=addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt)
+            
+            
+            
+            for cx in range(2,shr.ncols-3):
                 shw.write(cnt,cx,shr.cell_value(rx,cx))
             first=shr.cell_value(rx,cx-1)
             last=shr.cell_value(rx,cx)

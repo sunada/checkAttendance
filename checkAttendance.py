@@ -178,9 +178,7 @@ def PickMember(fileRead,fileWrite,nameDeps,workday):
                 print 'name:',name.encode('gb2312'),' baseName:',baseName.encode('gb2312'),
                 print 'day:',day,'workdayCnt:',workdayCnt,'workday:',workday[workdayCnt]
             workdayCnt,cnt,baseName=addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt)
-            
-            
-            
+             
             for cx in range(2,shr.ncols-3):
                 shw.write(cnt,cx,shr.cell_value(rx,cx))
             first=shr.cell_value(rx,cx-1)
@@ -263,23 +261,7 @@ def PickMember(fileRead,fileWrite,nameDeps,workday):
             shw.write(cnt,markColx,u'是')
         cnt+=1
     newBook.save(fileWrite)
-    
-
-'''
-def CheckWorkday(file,workday):
-    book=xlrd.open_workbook(file)
-    sh=book.sheet_by_index(0)
-    nrows=sh.nrows
-    name=sh.cell_value(0,nameColx)
-    days=[]
-    for rx in range(nrows):
-        nm=sh.cell_value(rx,nameColx)
-        if nm==name:
-            days.append(sh.cell_value(rx,reColx))
-        for day in workday:
-            if day not in days:
-'''                
-        
+                        
     
 if __name__=='__main__':
     #testXlrd('June.xls')
@@ -299,6 +281,5 @@ if __name__=='__main__':
     #print workday
 
     PickMember('June.xls','treated.xls',nameDeps,workday)
-    #CheckWorkday('treated.xls',workday)
 
 

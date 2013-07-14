@@ -113,12 +113,13 @@ def GetWorkday(month,weekday,weekend):
     return sorted(workday)      
 
 def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt): 
-    #print 'rowx:',rx,'name:',name.encode('gb2312'),'baseName:',baseName.encode('gb2312')
-    #print 'name:',name.encode('gb2312'),'baseName:',baseName.encode('gb2312')
+    #print 'name:',name.encode('gb2312'),'baseName:',baseName.encode('gb2312'),
+    #print type(day),'workday[workdayCnt]:',workday[workdayCnt]
     if name==baseName:
+        #print 'type(day)',type(day)
         if type(day) is float:
-            #print name.encode('gb2312'),day,workdayCnt,workday[workdayCnt]
-            if day>workday[workdayCnt]:
+            #print 'day:',day,'workdayCnt:',workdayCnt,'workday[workdayCnt]:',workday[workdayCnt]
+            if int(day)>workday[workdayCnt]:
                 #shw.write(cnt,depColx,nameDeps[name])
                 #shw.write(cnt,nameColx,name)
                 shw.write(cnt,workdayColx,workday[workdayCnt])
@@ -133,11 +134,32 @@ def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt):
                 workdayCnt+=1
                 shw.write(cnt,depColx,nameDeps[name])
                 shw.write(cnt,nameColx,name)
+                #print 'day:',day,'workday[workdayCnt]:',workday[workdayCnt]
                 workdayCnt,cnt,baseName=addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt)
-            elif day<workday[workdayCnt]:
+                #print 'after digui,day:',day,'workday[workdayCnt]:',workday[workdayCnt]
+            elif int(day)<workday[workdayCnt]:
+                #print 'in <'
                 pass
             else:
                 workdayCnt+=1
+            
+        elif type(day) is str and workdayCnt!=0:
+            dayCnt=len(workday)
+            while workdayCnt!=dayCnt:
+                shw.write(cnt,workdayColx,workday[workdayCnt])
+                shw.write(cnt,workdayColx+1,u'无打卡记录')
+                shw.write(cnt,workdayColx+2,u'无打卡记录')
+                shw.write(cnt,workdayColx+3,u'无打卡记录')
+                shw.write(cnt,workdayColx+4,u'无打卡记录')
+                shw.write(cnt,workdayColx+5,u'无打卡记录')
+                shw.write(cnt,workdayColx+6,u'无打卡记录')
+                shw.write(cnt,workdayColx+7,u'是')
+                cnt+=1
+                workdayCnt+=1
+                shw.write(cnt,depColx,nameDeps[name])
+                shw.write(cnt,nameColx,name)
+            print name.encode('gb2312'),workdayCnt
+                
     else:
         baseName=name
         workdayCnt=0
@@ -174,9 +196,9 @@ def PickMember(fileRead,fileWrite,nameDeps,workday):
             day=shr.cell_value(rx,workdayColx)
             
             #To check whether it needs to add a row
-            if type(day) is not unicode and workdayCnt!=22:
-                print 'name:',name.encode('gb2312'),' baseName:',baseName.encode('gb2312'),
-                print 'day:',day,'workdayCnt:',workdayCnt,'workday:',workday[workdayCnt]
+            #if type(day) is not unicode and workdayCnt!=22:
+            #    print 'rx:',rx,'name:',name.encode('gb2312'),' baseName:',baseName.encode('gb2312'),
+            #    print 'day:',day,'workdayCnt:',workdayCnt,'workday:',workday[workdayCnt]
             workdayCnt,cnt,baseName=addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt)
              
             for cx in range(2,shr.ncols-3):

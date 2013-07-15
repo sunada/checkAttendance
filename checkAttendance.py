@@ -5,6 +5,7 @@ import xlwt
 #from openpyxl import load_workbook
 import time
 from datetime import date,datetime
+import sys
 
 #the colx of dep
 depColx=0
@@ -17,7 +18,7 @@ markColx=9
 #import time point: 8:00,10:00,10:30,16:00,16:30,19:00,20:00
 tpnts=[0.333333,0.416667,0.4375,0.666666,0.6875,0.791667,0.833333]
 
-#xlrd is much more efficent
+#test how to use xlrd
 def testXlrd(filename):
     start=time.time()
     #, encoding_override="gbk"
@@ -36,7 +37,8 @@ def testXlrd(filename):
     #print "Cell D30 is", sh.cell_value(rowx=29, colx=3)
     #for rx in range(sh.nrows):
     #    print sh.row(rx)
-    
+
+#test how to use xlwt
 def testXlwt(filename):
     book=xlwt.Workbook()
     sheet1=book.add_sheet('hello')
@@ -61,6 +63,8 @@ def testXlwt(filename):
     book.save(filename)
     #book.save(TemporaryFile())
 
+#read name and his/her department (nameDeps)、weekdays which is holiday (weekday)
+#and weekends which is workday (weejebd)
 def ReadNamedeps(file):
     nameDeps={}
     book=xlrd.open_workbook(file)
@@ -70,20 +74,27 @@ def ReadNamedeps(file):
         dep=sh1.cell_value(row,0)
         name=sh1.cell_value(row,1)
         nameDeps[name]=dep
+        #print row,dep.encode('utf-8'),name.encode('utf-8')
     weekday=[]
     weekend=[]
     sh2=book.sheet_by_index(1)
     nrows=sh2.nrows
+    #print nrows
     for row in range(nrows):
         date1=sh2.cell_value(row,0)
         date2=sh2.cell_value(row,1)
+        #print 'type(date1):',type(date1),
+        #print 'type(date2):',type(date2)
         if type(date1)==float:
             weekday.append(date1)
+            #print 'weekday:',date1
         if type(date2)==float:
             weekend.append(date2)
+            #print 'weekend:',date2
 
     return nameDeps,weekday,weekend
 
+#abstract names from nameDeps
 def GetNames(nameDeps):
     names={}
     for item in nameDeps:
@@ -93,25 +104,31 @@ def GetNames(nameDeps):
         names[item]=False
     return names
 
-def GetWorkday(month,weekday,weekend):
+#return workdays in a month
+def GetWorkday(year,month,weekday,weekend):
     #calculate the start and end date of the workday
     #any time in excel is started from 1899.12.31
     base=date(1899,12,31).toordinal()
-    start=date(2013,month-1,21).toordinal()-base+1
-    end=date(2013,month,20).toordinal()-base+1
+    #every month, the start day is last month,21st
+    start=date(year,month-1,21).toordinal()-base+1
+    #and the end day is this month,20th
+    end=date(year,month,20).toordinal()-base+1
     
     workday=[]
     for i in range(start,end+1):
         tmp=date.fromordinal(i+base-1).weekday()
         #print i, tmp
+        #add week days which need to go to work
         if tmp in [0,1,2,3,4] and i not in weekday:
             workday.append(i)
-            
+    
+    #add weekend days which need to go to work
     for i in weekend:
         workday.append(i)
         
     return sorted(workday)      
 
+#if employees miss a workday, the function will add the record of the day
 def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt): 
     #print 'name:',name.encode('gb2312'),'baseName:',baseName.encode('gb2312'),
     #print type(day),'workday[workdayCnt]:',workday[workdayCnt]
@@ -119,6 +136,7 @@ def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt):
         #print 'type(day)',type(day)
         if type(day) is float:
             #print 'day:',day,'workdayCnt:',workdayCnt,'workday[workdayCnt]:',workday[workdayCnt]
+            #if employee 'name' miss some workday
             if int(day)>workday[workdayCnt]:
                 #shw.write(cnt,depColx,nameDeps[name])
                 #shw.write(cnt,nameColx,name)
@@ -137,12 +155,14 @@ def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt):
                 #print 'day:',day,'workday[workdayCnt]:',workday[workdayCnt]
                 workdayCnt,cnt,baseName=addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt)
                 #print 'after digui,day:',day,'workday[workdayCnt]:',workday[workdayCnt]
+            #if employee 'name' go to work on holiday
             elif int(day)<workday[workdayCnt]:
                 #print 'in <'
                 pass
+            #if employee 'name' go to work on the 'day'
             else:
                 workdayCnt+=1
-            
+        #to check weather the employee 'name' havn't go to work at the end of the month
         elif type(day) is str and workdayCnt!=0:
             dayCnt=len(workday)
             while workdayCnt!=dayCnt:
@@ -166,6 +186,7 @@ def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt):
     return workdayCnt,cnt,baseName
     
     
+#pick employees from the original tables and records their attendance to a new table
 def PickMember(fileRead,fileWrite,nameDeps,workday):
     book=xlrd.open_workbook(fileRead)
     shr=book.sheet_by_index(0)
@@ -280,8 +301,16 @@ def PickMember(fileRead,fileWrite,nameDeps,workday):
         if not names[name]:
             shw.write(cnt,depColx,nameDeps[name])
             shw.write(cnt,nameColx,name)
+            shw.write(cnt,workdayColx,u'原始表中无记录')
+            shw.write(cnt,workdayColx+1,u'原始表中无记录')
+            shw.write(cnt,workdayColx+2,u'原始表中无记录')
+            shw.write(cnt,workdayColx+3,u'原始表中无记录')
+            shw.write(cnt,workdayColx+4,u'原始表中无记录')
+            shw.write(cnt,workdayColx+5,u'原始表中无记录')
+            shw.write(cnt,workdayColx+6,u'原始表中无记录')
             shw.write(cnt,markColx,u'是')
-        cnt+=1
+            
+            cnt+=1
     newBook.save(fileWrite)
                         
     
@@ -290,7 +319,7 @@ if __name__=='__main__':
     #testOpenpyxl('June.xlsx')
     #testXlwt('xlwt.xls')
     
-    #our employees' names
+    #{name:dep},[weekday which is holiday],[weekend which is workday]
     nameDeps,weekday,weekend=ReadNamedeps(u'处理考勤所需信息.xls')
     '''
     for item in nameDeps:
@@ -299,9 +328,17 @@ if __name__=='__main__':
     print weekday
     print weekend
     '''
-    workday=GetWorkday(6,weekday,weekend)
+    
+    originAttandenceFile=sys.argv[1]
+    newAttandenceFile=sys.argv[2]
+    year=int(sys.argv[3])
+    month=int(sys.argv[4])
+    
+    #wordays of June
+    workday=GetWorkday(year,month,weekday,weekend)
     #print workday
-
-    PickMember('June.xls','treated.xls',nameDeps,workday)
+    
+    
+    PickMember(originAttandenceFile,newAttandenceFile,nameDeps,workday)
 
 

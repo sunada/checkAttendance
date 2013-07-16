@@ -122,10 +122,15 @@ def GetWorkday(year,month,weekday,weekend):
         if tmp in [0,1,2,3,4] and i not in weekday:
             workday.append(i)
     
-    #add weekend days which need to go to work
+    #add weekend days which need to go to work in the treated period
+    periodWeekend=[]
     for i in weekend:
+        if i <= end and i>= start:
+            periodWeekend.append(i)
+    
+    for i in periodWeekend:
         workday.append(i)
-        
+    
     return sorted(workday)      
 
 #if employees miss a workday, the function will add the record of the day
@@ -137,7 +142,18 @@ def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt):
         if type(day) is float:
             #print 'day:',day,'workdayCnt:',workdayCnt,'workday[workdayCnt]:',workday[workdayCnt]
             #if employee 'name' miss some workday
-            if int(day)>workday[workdayCnt]:
+            #print 'len(workday):',len(workday),' workdayCnt:',workdayCnt,
+            #print 'day:', int(day),'workday[workdayCnt]:',workday[workdayCnt]
+            
+            #if the 19th and 20th are holidays but the 'name' go to work
+            if workdayCnt>=len(workday):
+                pass
+            #if employee 'name' go to work on holiday
+            elif int(day)<workday[workdayCnt]:
+                #print 'in <'
+                pass
+            #if the 'name' miss some workdays
+            elif int(day)>workday[workdayCnt]:
                 #shw.write(cnt,depColx,nameDeps[name])
                 #shw.write(cnt,nameColx,name)
                 shw.write(cnt,workdayColx,workday[workdayCnt])
@@ -152,13 +168,7 @@ def addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt):
                 workdayCnt+=1
                 shw.write(cnt,depColx,nameDeps[name])
                 shw.write(cnt,nameColx,name)
-                #print 'day:',day,'workday[workdayCnt]:',workday[workdayCnt]
                 workdayCnt,cnt,baseName=addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt)
-                #print 'after digui,day:',day,'workday[workdayCnt]:',workday[workdayCnt]
-            #if employee 'name' go to work on holiday
-            elif int(day)<workday[workdayCnt]:
-                #print 'in <'
-                pass
             #if employee 'name' go to work on the 'day'
             else:
                 workdayCnt+=1
@@ -222,7 +232,7 @@ def PickMember(fileRead,fileWrite,nameDeps,workday):
             #    print 'day:',day,'workdayCnt:',workdayCnt,'workday:',workday[workdayCnt]
             workdayCnt,cnt,baseName=addWorkday(workday,name,baseName,workdayCnt,day,shw,cnt)
              
-            for cx in range(2,shr.ncols-3):
+            for cx in range(2,5):
                 shw.write(cnt,cx,shr.cell_value(rx,cx))
             first=shr.cell_value(rx,cx-1)
             last=shr.cell_value(rx,cx)
@@ -329,11 +339,18 @@ if __name__=='__main__':
     print weekend
     '''
     
+    #'''
     originAttandenceFile=sys.argv[1]
     newAttandenceFile=sys.argv[2]
     year=int(sys.argv[3])
     month=int(sys.argv[4])
-    
+    #'''
+    '''
+    originAttandenceFile='april.xls'
+    newAttandenceFile='aprilNew.xls'
+    year=2013
+    month=4
+    '''
     #wordays of June
     workday=GetWorkday(year,month,weekday,weekend)
     #print workday

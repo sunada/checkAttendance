@@ -171,9 +171,9 @@ def add_workday(workday, name, base_name, workday_cnt, day, shw, cnt):
             else:
                 workday_cnt += 1
         #to check weather the employee 'name' havn't go to work at the end of the month
-        elif type(day) is str and workday_cnt! = 0:
+        elif type(day) is str and workday_cnt != 0:
             dayCnt = len(workday)
-            while workday_cnt! = dayCnt:
+            while workday_cnt != dayCnt:
                 shw.write(cnt, WORKDAYCOLX, workday[workday_cnt])
                 shw.write(cnt, WORKDAYCOLX+1, u'无打卡记录')
                 shw.write(cnt, WORKDAYCOLX+2, u'无打卡记录')
@@ -232,75 +232,75 @@ def pick_member(file_read, file_write, name_deps, workday):
              
             for cx in range(2, 5):
                 shw.write(cnt, cx, shr.cell_value(rx, cx))
-            first = shr.cell_value(rx, cx - 1)
+            first = shr.cell_value(rx, cx-1)
             last = shr.cell_value(rx, cx)
             #print type(hours)
             flag = False
             if type(first) is unicode:
-                shw.write(cnt, cx + 1, u'上班考勤')
-                shw.write(cnt, cx + 2, u'下班考勤')
-                shw.write(cnt, cx + 3, u'考勤工时')
-                shw.write(cnt, cx + 4, u'是否工时不足')
-                shw.write(cnt, cx + 5, u'是否有考勤异常') 
+                shw.write(cnt, cx+1, u'上班考勤')
+                shw.write(cnt, cx+2, u'下班考勤')
+                shw.write(cnt, cx+3, u'考勤工时')
+                shw.write(cnt, cx+4, u'是否工时不足')
+                shw.write(cnt, cx+5, u'是否有考勤异常') 
             elif type(first) is float:
                 if first < tpnts[0]:
-                    hours = (last - tpnts[0])*24
+                    hours = (last-tpnts[0]) * 24
                 else:
-                    hours = (last - first)*24
-                shw.write(cnt, cx + 3, hours)
-                date = shr.cell_value(rx, cx - 2)
+                    hours = (last-first) * 24
+                shw.write(cnt, cx+3, hours)
+                date = shr.cell_value(rx, cx-2)
                 if date in workday:
                     #10:31 - 15:59叫旷工
                     if first - tpnts[2] > 0:
                         #print 'KG'
                         #print 'first:', first*24
                         #print '10:30:', tpnts[2]
-                        shw.write(cnt, cx + 1, u'***旷工***')
+                        shw.write(cnt, cx+1, u'***旷工***')
                         flag = True
                     #10:01至10:30之间叫迟到
                     elif first - tpnts[1] > 0:
                         #print 'CD'
                         #print 'first:', first*24, ' 10:00', tpnts[1]
-                        shw.write(cnt, cx + 1, u'***迟到***')
+                        shw.write(cnt, cx+1, u'***迟到***')
                         flag = True
                     else:
                         #print 'first ZH', first*24
-                        shw.write(cnt, cx + 1, u'正常')
+                        shw.write(cnt, cx+1, u'正常')
                 
                     #10:31 - 15:59叫旷工
                     if last - tpnts[3] < 0:
                         #print 'KG'
                         #print 'last:', last*24
                         #print '16:00:', tpnts[3]
-                        shw.write(cnt, cx + 2, u'***旷工***')
+                        shw.write(cnt, cx+2, u'***旷工***')
                         flag = True
                     #16：00至16：29之间叫早退
                     elif last - tpnts[4] < 0:
                         #print 'ZT'
                         #print 'last:', last, ' 16:30, ', tpnts[4]
-                        shw.write(cnt, cx + 2, u'***早退***')
+                        shw.write(cnt, cx+2, u'***早退***')
                         flag = True
                     else:
                         #print 'last ZH', last*24
-                        shw.write(cnt, cx + 2, u'正常')
+                        shw.write(cnt, cx+2, u'正常')
                     #小时8.5小时叫工时不足
                     if hours < 8.5:
                         #print 'hours: ', hours
-                        shw.write(cnt, cx + 4, u'工时不足')
+                        shw.write(cnt, cx+4, u'工时不足')
                         flag = True
                     else:
                         #print 'hours: ', hours
-                        shw.write(cnt, cx + 4, u'正常')
+                        shw.write(cnt, cx+4, u'正常')
                 else:
-                    shw.write(cnt, cx + 1, u'非工作日')
-                    shw.write(cnt, cx + 2, u'非工作日')
-                    shw.write(cnt, cx + 4, u'非工作日')
-                    #shw.write(cnt, cx + 5, u'加班')
+                    shw.write(cnt, cx+1, u'非工作日')
+                    shw.write(cnt, cx+2, u'非工作日')
+                    shw.write(cnt, cx+4, u'非工作日')
+                    #shw.write(cnt, cx+5, u'加班')
             
                 if flag:
-                    shw.write(cnt, cx + 5, u'是')
+                    shw.write(cnt, cx+5, u'是')
                 else:
-                    shw.write(cnt, cx + 5, u'否')
+                    shw.write(cnt, cx+5, u'否')
             else:
                 pass
             cnt += 1
@@ -310,12 +310,12 @@ def pick_member(file_read, file_write, name_deps, workday):
             shw.write(cnt, DEPCOLX, name_deps[name])
             shw.write(cnt, NAMECOLX, name)
             shw.write(cnt, WORKDAYCOLX, u'原始表中无记录')
-            shw.write(cnt, WORKDAYCOLX + 1, u'原始表中无记录')
-            shw.write(cnt, WORKDAYCOLX + 2, u'原始表中无记录')
-            shw.write(cnt, WORKDAYCOLX + 3, u'原始表中无记录')
-            shw.write(cnt, WORKDAYCOLX + 4, u'原始表中无记录')
-            shw.write(cnt, WORKDAYCOLX + 5, u'原始表中无记录')
-            shw.write(cnt, WORKDAYCOLX + 6, u'原始表中无记录')
+            shw.write(cnt, WORKDAYCOLX+1, u'原始表中无记录')
+            shw.write(cnt, WORKDAYCOLX+2, u'原始表中无记录')
+            shw.write(cnt, WORKDAYCOLX+3, u'原始表中无记录')
+            shw.write(cnt, WORKDAYCOLX+4, u'原始表中无记录')
+            shw.write(cnt, WORKDAYCOLX+5, u'原始表中无记录')
+            shw.write(cnt, WORKDAYCOLX+6, u'原始表中无记录')
             shw.write(cnt, MARKCOLX, u'是')
             
             cnt +=  1
@@ -325,6 +325,7 @@ def pick_member(file_read, file_write, name_deps, workday):
 if __name__ == '__main__':
     #test_xlrd('June.xls')
     #test_xlwt('xlwt.xls')
+    #test_xlrd('Book1.xls')
     
     #{name:dep}, [weekday which is holiday], [weekend which is workday]
     name_deps, weekday, weekend = read_name_deps(u'处理考勤所需信息.xls')
@@ -354,5 +355,5 @@ if __name__ == '__main__':
     
     
     pick_member(origin_attandence_file, new_attandence_file, name_deps, workday)
-    test_xlrd('Book1.xls')
+    
 
